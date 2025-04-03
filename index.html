@@ -6,98 +6,190 @@
     <title>Mobile Recharge</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            background-color: #eef2f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
         .container {
-            width: 90%;
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+        h2 {
+            color: #2c3e50;
         }
         input, select, button {
             width: 100%;
-            padding: 10px;
             margin: 10px 0;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 6px;
             border: 1px solid #ccc;
+            font-size: 16px;
         }
-        button {
+        .operator-logo {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+        .operator-logo img {
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s ease-in-out;
+            border: 3px solid transparent;
+        }
+        .operator-logo img:hover {
+            transform: scale(1.1);
+        }
+        .operator-logo img.selected {
+            border: 3px solid #007bff;
+        }
+        .recharge-btn {
             background-color: #28a745;
             color: white;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: bold;
             border: none;
             cursor: pointer;
+            transition: 0.3s;
         }
-        button:hover {
+        .recharge-btn:hover {
             background-color: #218838;
-        }
-        .operator-logos img {
-            width: 50px;
-            margin: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>🔋 Mobile Recharge</h2>
-        <div class="operator-logos">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/Jio_Logo.png" alt="Jio">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Airtel_logo.png" alt="Airtel">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Vodafone_Idea_logo.png" alt="VI">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/BSNL_logo.png" alt="BSNL">
-        </div>
-        <input type="tel" id="mobileNumber" placeholder="Enter Mobile Number" maxlength="10">
-        <select id="operator">
-            <option value="Jio">Jio</option>
-            <option value="Airtel">Airtel</option>
-            <option value="VI">VI</option>
-            <option value="BSNL">BSNL</option>
-        </select>
-        <select id="amount">
-            <option value="149">₹149</option>
-            <option value="199">₹199</option>
-            <option value="249">₹249</option>
-            <option value="399">₹399</option>
-            <option value="599">₹599</option>
-        </select>
-        <button onclick="sendRecharge()">🔄 Recharge Now</button>
+
+<div class="container">
+    <h2>📱 Mobile Recharge</h2>
+
+    <input type="text" id="mobileNumber" placeholder="Enter Mobile Number">
+
+    <h3>Select Operator:</h3>
+    <div class="operator-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/Reliance_Jio_Logo.png" onclick="selectOperator('Jio', this)">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/bc/Airtel_New_Logo.png" onclick="selectOperator('Airtel', this)">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Vodafone_Idea_Logo.png" onclick="selectOperator('VI', this)">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/BSNL_Logo.svg" onclick="selectOperator('BSNL', this)">
     </div>
 
-    <script>
-        function sendRecharge() {
-            let mobile = document.getElementById("mobileNumber").value;
-            let operator = document.getElementById("operator").value;
-            let amount = document.getElementById("amount").value;
+    <select id="operator" onchange="updatePlans()">
+        <option value="">-- Select Operator --</option>
+        <option value="Jio">Jio</option>
+        <option value="Airtel">Airtel</option>
+        <option value="VI">VI (Vodafone Idea)</option>
+        <option value="BSNL">BSNL</option>
+    </select>
 
-            if (mobile.length !== 10) {
-                alert("Please enter a valid 10-digit mobile number.");
-                return;
-            }
+    <h3>Search or Select Plan:</h3>
+    <input type="text" id="searchAmount" placeholder="Search Recharge Amount" onkeyup="filterPlans()">
+    
+    <select id="amount">
+        <option value="">-- Select Plan --</option>
+    </select>
 
-            let rechargeData = {
-                mobile: mobile,
-                operator: operator,
-                amount: amount
-            };
+    <button class="recharge-btn" onclick="sendToWhatsApp()">Recharge Now</button>
+</div>
 
-            // Send data to Telegram Bot
-            let botToken = "YOUR_BOT_TOKEN";  // अपना बॉट टोकन डालो
-            let chatId = "YOUR_CHAT_ID";  // अपना टेलीग्राम चैट ID डालो
-            let message = `📲 Recharge Request:\n\n📞 Number: ${mobile}\n🏷 Operator: ${operator}\n💰 Amount: ₹${amount}`;
+<script>
+    const plans = {
+        "Jio": [
+            { amount: 299, details: "₹299 - 1.5GB/day (28 days)" },
+            { amount: 719, details: "₹719 - 2GB/day (84 days)" },
+            { amount: 2999, details: "₹2,999 - 2.5GB/day (365 days)" }
+        ],
+        "Airtel": [
+            { amount: 199, details: "₹199 - 2GB total (28 days)" },
+            { amount: 299, details: "₹299 - 1.5GB/day (28 days)" },
+            { amount: 719, details: "₹719 - 1.5GB/day (84 days)" }
+        ],
+        "VI": [
+            { amount: 199, details: "₹199 - 1GB/day (28 days)" },
+            { amount: 299, details: "₹299 - 2GB/day (28 days)" },
+            { amount: 699, details: "₹699 - 2.5GB/day (84 days)" }
+        ],
+        "BSNL": [
+            { amount: 347, details: "₹347 - 2GB/day (54 days)" },
+            { amount: 485, details: "₹485 - 2GB/day (80 days)" },
+            { amount: 599, details: "₹599 - 3GB/day (84 days)" }
+        ]
+    };
 
-            let url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+    function selectOperator(operator, imgElement) {
+        document.getElementById("operator").value = operator;
+        updatePlans();
 
-            fetch(url).then(response => {
-                alert("✅ Recharge request sent successfully!");
-            }).catch(error => {
-                alert("❌ Failed to send recharge request.");
+        document.querySelectorAll('.operator-logo img').forEach(img => img.classList.remove('selected'));
+        imgElement.classList.add('selected');
+    }
+
+    function updatePlans() {
+        let operator = document.getElementById("operator").value;
+        let planSelect = document.getElementById("amount");
+        planSelect.innerHTML = `<option value="">-- Select Plan --</option>`;
+
+        if (operator && plans[operator]) {
+            plans[operator].forEach(plan => {
+                let option = document.createElement("option");
+                option.value = plan.amount;
+                option.textContent = plan.details;
+                planSelect.appendChild(option);
             });
         }
-    </script>
+    }
+
+    function filterPlans() {
+        let searchValue = document.getElementById("searchAmount").value.trim();
+        let operator = document.getElementById("operator").value;
+        let planSelect = document.getElementById("amount");
+        
+        planSelect.innerHTML = `<option value="">-- Select Plan --</option>`;
+
+        if (operator && plans[operator]) {
+            plans[operator].forEach(plan => {
+                if (searchValue === "" || plan.amount.toString().startsWith(searchValue)) {
+                    let option = document.createElement("option");
+                    option.value = plan.amount;
+                    option.textContent = plan.details;
+                    planSelect.appendChild(option);
+                }
+            });
+        }
+    }
+
+    function sendToWhatsApp() {
+        let mobile = document.getElementById("mobileNumber").value;
+        let operator = document.getElementById("operator").value;
+        let amount = document.getElementById("amount").value;
+        let amountText = document.getElementById("amount").selectedOptions[0]?.text || "";
+
+        if (mobile.length < 10 || isNaN(mobile)) {
+            alert("Please enter a valid mobile number.");
+            return;
+        }
+        if (!operator) {
+            alert("Please select an operator.");
+            return;
+        }
+        if (!amount) {
+            alert("Please select a recharge plan.");
+            return;
+        }
+
+        let whatsappNumber = "6307536245";  
+        let whatsappLink = `https://api.whatsapp.com/send?phone=91${whatsappNumber}&text=📢 Recharge Request%0A📱 Mobile: ${mobile}%0A📡 Operator: ${operator}%0A💳 Plan: ${amountText}`;
+
+        window.open(whatsappLink, "_blank");
+    }
+</script>
+
 </body>
 </html>
